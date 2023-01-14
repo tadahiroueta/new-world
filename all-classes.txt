@@ -1,0 +1,3658 @@
+import java.util.*;
+
+/**
+ * The runner class for this project.
+ * It allows the user to interact with the inventory.
+ *
+ * @author John Robert R.
+ * @author Lucas Ueta
+ */
+public class Runner {
+    /**
+     * Receives commands from user.
+     *
+     * @return - String array (size 2) with the arguments inputted by the user.
+     */
+    private static String[] getUserInput() {
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.nextLine().toLowerCase(Locale.ROOT);
+        int spaceIndex = input.indexOf(' ');
+        if (spaceIndex == -1)
+            return new String[] { input, "" };
+
+        return new String[] { input.substring(0, spaceIndex), input.substring(spaceIndex + 1) };
+    }
+
+    /**
+     * Prints a message informing the user of the valid commands.
+     */
+    private static void help() {
+        System.out.println("""
+                            'open' - view full inventory
+                            'view <item name>' - view item and its available actions
+                            'exit' - end the program""");
+    }
+
+    /**
+     * Prints out the item's valid actions.
+     * It then listens out for the user's command to carry it out.
+     *
+     * @param item - the item the user has inquired about
+     */
+    private static void interactWithItem(Item item) {
+        System.out.println("--- ACTIONS ---");
+        System.out.println(item.getActions());
+        String firstArgument = getUserInput()[0];
+        if (firstArgument.equals("exit"))
+            return;
+
+        if (!item.act(firstArgument))
+            System.out.println("Invalid action.");
+    }
+
+    /**
+     * Prints out the items information and allows user to interact with the item.
+     *
+     * @param secondArgument - the item's name
+     * @param inventory - the only inventory
+     */
+    private static void view(String secondArgument, Inventory inventory) {
+        Item item = inventory.getItem(secondArgument);
+        if (item == null) {
+            System.out.println("Invalid item name. Check your inventory to find valid names.");
+            return;
+        }
+
+        System.out.println(item);
+        interactWithItem(item);
+    }
+
+    /**
+     * Allows user to interact with the inventory.
+     *
+     * @param inventory - the only inventory
+     */
+    private static void interact(Inventory inventory) {
+        help();
+        while (true) {
+            String[] userInput = getUserInput();
+            String firstArgument = userInput[0];
+            String secondArgument = userInput[1];
+            switch (firstArgument) {
+                case "open":
+                    System.out.println(inventory);
+                    break;
+
+                case "view":
+                    view(secondArgument, inventory);
+                    break;
+
+                case "help":
+                    help();
+                    break;
+
+                case "exit":
+                    return;
+
+                default:
+                    System.out.println("Invalid command.\n" +
+                            "Type in \"help\" for the list of valid commands.");
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Creates an inventory with some items that were displayed in the presentation.
+     * It then allows the user to interact with it.
+     *
+     * @param args - none
+     */
+    public static void main(String[] args) {
+        Inventory inventory = new Inventory();
+
+        // pre written items
+        Item armorCase = new Rewards(
+                "Armor Case (Level: 53)",
+                "Open this container to get items usable at or around the indicated level. Containers are not affected by Luck.",
+                "Resource",
+                0.5,
+                inventory,
+                "Uncommon",
+                5,
+                "Bind On Equip"
+        );
+
+        Item fighterHatchet = new Weapons(
+                "Mammoth's Tusk",
+                "\"The ivory of the mammoth makes for a lightweight and durable hatchet, perfect for carving up your enemies.\"",
+                "Hatchet",
+                3.6,
+                inventory,
+                "Legendary",
+                550,
+                5,
+                3000,
+                0,
+                "",
+                "63 Base Damage\n" +
+                        "4.0% Critical Hit Chance\n" +
+                        "1.4 Critical Damage Multiplier\n" +
+                        "42.0 Block Stamina Damage\n" +
+                        "42.0 Stagger Damage\n" +
+                        "19% Block Stability\n" +
+                        "178 Slash Damage",
+                "30 Strength\n" +
+                        "Brash IV: +30% damage against targets with full Health. \n" +
+                        "Refreshing Torrent: Every hit of Raging Torrent reduces all Hatchet cooldowns by 4.6%.\n" +
+                        "Keen Speed: On Critical: gain 30% Haste 3s. (Cooldown 5s.)\n" +
+                        "Rogue: +19% more backstab damage.",
+                "Bind On Equip\n" +
+                        "Named Item",
+                "Strength 90%, Dexterity 65%",
+                true,
+                false
+        );
+
+        Item gloves = new Apparel(
+                "Covenant Herald's Gloves of the Priest",
+                "The court regalia of a Covenant herald.",
+                "Light Glove",
+                1.5,
+                inventory,
+                "Rare",
+                350,
+                3,
+                500,
+                0,
+                "66.3 Armor Rating - Elemental\n" +
+                        "39.0 Armor Rating - Physical",
+                "9 Focus\n" +
+                        "6 Intelligence\n" +
+                        "Empty Gem Socket: An empty socket for a gem.\n" +
+                        "Corrupted Ward: +3.9% Damage Absorption against Corrupted.",
+                "Bind On Pickup",
+                true,
+                false
+        );
+
+        Item arrows = new Ammo(
+                "Iron Arrow",
+                "Ammunition for bows.",
+                "Ammo",
+                45.8,
+                inventory,
+                1.05,
+                2,
+                true
+        );
+
+        Item potion = new Utilities(
+                "Infused Health Potion",
+                "USE: Restore 2400 health +7% of your max health.",
+                "Consumable",
+                0.5,
+                inventory,
+                500,
+                5,
+                60,
+                30.0,
+                true
+        );
+
+        Item meal = new BasicFood(
+                "Hearty Meal",
+                "Recover 220 health per second for 20 seconds. This recovery stops if damage is taken. Afterwards, recover 1% of your health every 2.5 seconds for 40 minutes.",
+                "Consumable",
+                27.3,
+                inventory,
+                5,
+                40,
+                60,
+                true
+        );
+
+        Item fish = new AttributeFood(
+                "Recipe: Poached Fish with Lemon and Dill\n",
+                "Crafting recipe for Poached Fish with Lemon and Dill",
+                "Foods",
+                10.5,
+                inventory,
+                2,
+                25,
+                false
+        );
+
+        Item melon = new TradeskillFood(
+                "Melon Infusion",
+                "Increases your minimum gear score when crafting Jewelcrafting items by 10. Increases maximum gear score when crafting Jewelcrafting items by 10. Effects last for 30 minutes. Your health slowly recovers while under these effects.",
+                "Consumable",
+                0.3,
+                inventory,
+                3,
+                30,
+                20
+        );
+
+        Item repairKit = new RepairKits(
+                "Advanced Repair Kit",
+                "An Advanced Repair Kit. Fully repairs any Tier 3 item.",
+                "Quest Item",
+                0.6,
+                inventory,
+                3
+        );
+
+        Item chicken = new Cooking(
+                "Poultry Thigh",
+                "The thigh meat of a turkey, fatty and delicious.",
+                "Consumable",
+                0.2,
+                inventory,
+                "Uncommon",
+                5,
+                10,
+                "Tier 5 Meats, Raw Meats, Raw Foods, Tier 5 Raw Foods\n",
+                "Turkey, Uncommon",
+                false
+        );
+
+        Item salmon = new Fishing(
+                "Small Salmon",
+                "\n" +
+                        "A small salmon. This can be salvaged into food with a chance of acquiring fish oil.",
+                "Resource",
+                0.3,
+                inventory,
+                "Common",
+                2,
+                "Raw Foods, Fish, Tier 2 Raw Foods"
+        );
+
+        Item fang = new CraftMods(
+                "Jagged Animal Fang",
+                "Crafting item with an attunement to the Skinning Luck perk.",
+                "Resource",
+                0.1,
+                inventory,
+                "Uncommon",
+                "Any Craft Mods"
+        );
+
+        Item rabbitsFoot = new Resources(
+                "Rabbit's Foot",
+                "A lucky rabbit's foot. Use this to craft a Luck trophy.",
+                "Resource",
+                0.3,
+                inventory,
+                "Epic"
+        );
+
+        Item orb = new TurningOrbs(
+                "Amrine Tuning Orb",
+                "A tuning orb that allows access to the Amrine Excavation expedition.",
+                "Event Key",
+                4.0,
+                inventory,
+                "Uncommon",
+                "Bind On Pickup"
+        );
+
+        Item diamond = new Jewelcrafting(
+                "Diamond",
+                "Used in Jewelcrafting, but must be cut and polished at a Stonecurring Station first.",
+                "Resource",
+                0.1,
+                inventory,
+                "Uncommon",
+                3,
+                "Ore Veins",
+                "Gemstones, Standard Gemstones"
+        );
+
+        Item solvent = new RefiningReagents(
+                "Potent Solvent",
+                "A potent solvent used in advanced weaving.",
+                "Resource",
+                3.4,
+                inventory,
+                "Uncommon",
+                4,
+                "Solvent, Refining Materials Tier 4",
+                "Supply Containers"
+        );
+
+        Item ore = new Smelting(
+                "Starmetal Ore",
+                "Raw Resource used in crafting. Can be refined.",
+                "Resource",
+                12,
+                inventory,
+                4,
+                "Starmetal Veins"
+        );
+
+        Item hide = new Leatherworking(
+                "Rawhide",
+                "Raw Resource used in crafting. Can be refined.",
+                "Resource",
+                47.8,
+                inventory,
+                1,
+                "Skinnable Creatures"
+        );
+
+        Item linen = new Weaving(
+                "Linen",
+                "Crafting Material.",
+                "Resource",
+                1.5,
+                inventory,
+                2,
+                "Tier 2 Cloth, Cloth",
+                "Loom Tier 2"
+        );
+
+        Item charcoal = new Woodworking(
+                "Charcoal",
+                "Crafting Material.",
+                "Resource",
+                1.9,
+                inventory,
+                2,
+                "Smelter"
+        );
+
+        Item brick = new Stonecutting(
+                "Stone Brick",
+                "Cut stnoe mainly used to upgrade parts of a settlement of fortress.",
+                "Resource",
+                21,
+                inventory,
+                3,
+                "Stonecutter Tier 3"
+        );
+
+        Item earthshell = new AlchemyAndArcana(
+                "Earthshell Tail",
+                "The tail of a Earthshell Turtle",
+                "Resource",
+                0.3,
+                inventory,
+                "Epic",
+                "Earth Reagents, Protective Reagents, Tier 5 Earth Reagents, Tier 5 Protective Reagents",
+                "Earthshell Turtle",
+                5
+        );
+
+        Item letter = new Furniture(
+                "Letter of Marque",
+                "An old letter of marque - once a free pass to pillage and terrorize, now just a fond memento.",
+                "",
+                0.6,
+                inventory,
+                1
+        );
+
+        Item pigment = new Dyes(
+                "Purple Pigment",
+                "Used in dye crafting to create dyes in shades of purple.",
+                "Resource",
+                0.3,
+                inventory
+        );
+
+        Item thread = new QuestItems(
+                "Infused Orichalcum thread",
+                "Thin strands of orichalcum are worked into the fibers.",
+                "Quest Item",
+                0,
+                inventory
+        );
+
+        // initial state
+        inventory.addItem(armorCase, "Rewards");
+        inventory.addItem(fighterHatchet, "Weapons");
+        inventory.addItem(gloves, "Apparel");
+        inventory.addItem(arrows, "Ammo");
+        inventory.addItem(potion, "Utilities");
+        inventory.addItem(meal, "BasicFood");
+        inventory.addItem(fish, "AttributeFood");
+        inventory.addItem(melon, "TradeskillFood");
+        inventory.addItem(repairKit, "RepairKits");
+        inventory.addItem(chicken, "Cooking");
+        inventory.addItem(salmon, "Fishing");
+        inventory.addItem(fang, "CraftMods");
+        inventory.addItem(rabbitsFoot, "Resources");
+        inventory.addItem(orb, "TurningOrbs");
+        inventory.addItem(diamond, "Jewelcrafting");
+        inventory.addItem(solvent, "RefiningReagents");
+        inventory.addItem(ore, "Smelting");
+        inventory.addItem(hide, "Leatherworking");
+        inventory.addItem(linen, "Weaving");
+        inventory.addItem(charcoal, "Woodworking");
+        inventory.addItem(brick, "Stonecurring");
+        inventory.addItem(earthshell, "AlchemyAndArcana");
+        inventory.addItem(letter, "Furniture");
+        inventory.addItem(pigment, "Dyes");
+        inventory.addItem(thread, "QuestItems");
+
+        // user interaction
+        interact(inventory);
+    }
+}
+
+
+
+
+
+
+
+
+
+import java.util.*;
+
+/**
+ * Where all inventory parts are stored.
+ * There are many methods to interact with the items stored.
+ *
+ * @author John Robert R.
+ * @author Lucas Ueta
+ */
+public class Inventory {
+    private ArrayList<InventoryPart> inventory;
+    private double weight;
+
+    public Inventory() {
+        inventory = new ArrayList<InventoryPart>();
+        weight = 0;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    /**
+     * Returns inventory part based on its class name.
+     *
+     * @param className - the class name of the desired inventory part.
+     * @return - the desired inventory part.
+     */
+    public InventoryPart getPart(String className) {
+        for (InventoryPart inventoryPart : inventory)
+            if (inventoryPart.getClassName().equals(className))
+                return inventoryPart;
+
+        // if inventory part does not exist, yet
+        return addPart(new InventoryPart(className));
+    }
+
+    private InventoryPart addPart(InventoryPart newPart) {
+        inventory.add(newPart);
+        return newPart;
+    }
+
+    private InventoryPart removePart(InventoryPart toBeRemoved) {
+        inventory.remove(toBeRemoved);
+        return toBeRemoved;
+    }
+
+    /**
+     * Add item to its inventory part.
+     *
+     * @param toAdd - the item to be added.
+     * @param className - the name of the inventory part where the item will be stored.
+     * @return - the added item.
+     */
+    public Item addItem(Item toAdd, String className) {
+        getPart(className).addItem(toAdd);
+        this.weight += toAdd.getWeight();
+        return toAdd;
+    }
+
+    /**
+     * Removes item from the inventory.
+     *
+     * @param name - name of the item to be removed.
+     * @return - the removed item.
+     */
+    public Item removeItem(String name) {
+        for (InventoryPart part : inventory) {
+            Item removed = part.removeItem(name);
+            if (removed != null) {
+                weight -= removed.getWeight();
+                if (part.getItems().size() == 0)
+                    removePart(part);
+
+                return removed;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the desired item by its name.
+     *
+     * @param name - the name of the desired item.
+     * @return - the desired item.
+     */
+    public Item getItem(String name) {
+        for (InventoryPart part : inventory)
+            for (Item item : part.getItems())
+                if (item.getName().toLowerCase(Locale.ROOT).equals(name))
+                    return item;
+
+        return null;
+    }
+
+    /**
+     * Returns a string representing the inventory.
+     *
+     * @return - a visual representation of the inventory; includes its weight, inventory parts and the items stored in them.
+     */
+    @Override
+    public String toString() {
+        StringBuilder output = new StringBuilder(String.format("""
+                --- INVENTORY ---
+                Weight: %.1f""", weight));
+        for (InventoryPart part : inventory)
+            output.append("\n\n").append(part.toString());
+
+        return output.toString();
+    }
+}
+
+
+
+
+
+
+
+
+
+import java.util.*;
+
+/**
+ * A category of a group of items.
+ *
+ * @author John Roberts R.
+ * @author Lucas Ueta
+ */
+public class InventoryPart {
+    private double weight;
+    private ArrayList<Item> items;
+    private String className;
+
+    public InventoryPart(String name) {
+        this.className = name;
+        items = new ArrayList<Item>();
+        weight = 0;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public double getWeight()
+    {
+        return weight;
+    }
+
+    public void addItem (Item thing) {
+        items.add(thing);
+        weight += thing.getWeight();
+    }
+
+    public Item removeItem (String name) {
+        for (Item item : items)
+            if (item.getName().equals(name)) {
+                weight -= item.getWeight();
+                Item toBeRemoved = item;
+                items.remove(item);
+                return toBeRemoved;
+            }
+        return null;
+    }
+
+    public ArrayList<Item> getItems() {
+        return items;
+    }
+
+    /**
+     * Gives a visual representation of the items in this category.
+     *
+     * @return - this inventory part's name and a list of the names of the items it stores.
+     */
+    @Override
+    public String toString() {
+        StringBuilder output = new StringBuilder(className);
+        for (Item item : items)
+            output.append("\n\t").append(item.getName());
+
+        return output.toString();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Grandparent / parent class of all items.
+ * Includes the similarities all items share.
+ *
+ * @authors John Robert R. and Lucas Ueta
+ */
+public class Item implements LinkToChat {
+    private String name, description, overarchingCategory;
+    private double weight;
+    private Inventory inventory;
+
+    public Item(String name, String description, String overarchingCategory, double weight, Inventory inventory) {
+        this.name = name;
+        this.description = description;
+        this.overarchingCategory = overarchingCategory;
+        this.weight = weight;
+        this.inventory = inventory;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getOverarchingCategory() {
+        return overarchingCategory;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public Inventory getInventory() {
+        return inventory;
+    }
+
+    public String getActions() {
+        return "";
+    }
+
+    public boolean act(String command) {
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "Item{" +
+                "name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", overarchingCategory='" + overarchingCategory + '\'' +
+                ", weight=" + weight +
+                ", inventory=" + inventory +
+                '}';
+    }
+
+    @Override
+    public void linkToChat() {
+        System.out.printf("%s has been linked to chat.\n", getName());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface ChangeSkin {
+    public void changeSkin();
+}
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface Discard {
+    public void discard();
+}
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface Dye {
+    public void dye();
+}
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface EquipUnequip {
+    public void equipUnequip();
+}
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface LinkToChat {
+    public void linkToChat();
+}
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface LockUnlock {
+    public void lockUnlock();
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface Open {
+    public void open();
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface Repair {
+    public void repair();
+}
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface ReplaceGem {
+    public void replaceGem();
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface Salvage {
+    public void salvage();
+}
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface Split {
+    public void split();
+}
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface Upgrade {
+    public void upgrade();
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public interface Use {
+    public void use();
+}
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public class Food extends Item
+{
+    private int tier;
+    private double effectDuration;
+
+    public Food(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier, double effectDuration) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.tier = tier;
+        this.effectDuration = effectDuration;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public double getEffectDuration() {
+        return effectDuration;
+    }
+
+    public void setEffectDuration(double effectDuration) {
+        this.effectDuration = effectDuration;
+    }
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class AttributeFood extends Food implements EquipUnequip, Use, Discard, Split {
+    private boolean equipped;
+
+    public AttributeFood(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier, double effectDuration, boolean equipped) {
+        super(name, description, overarchingCategory, weight, inventory, tier, effectDuration);
+        this.equipped = equipped;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void equipUnequip() {
+        equipped = !equipped;
+        System.out.printf("%s has been %s.\n", getName(), equipped ? "equipped" : "unequipped");
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public void use() {
+        System.out.printf("%s has been used.\n", getName());
+        getInventory().removeItem(getName());
+    }
+
+    @Override
+    public String getActions() {
+        return String.format(
+                """
+                %s
+                Use
+                Discard
+                Split
+                Link to Chat""",
+                equipped ? "Unequip" : "Equip"
+        );
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "equip":
+            case "unequip":
+                equipUnequip();
+                return true;
+
+            case "use":
+                use();
+                return true;
+
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Tier %d
+                        %.1f Weight
+                        %.1fm Effect Duration""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                getTier(),
+                getWeight(),
+                getEffectDuration()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class BasicFood extends Food implements EquipUnequip, Use, Discard, Split {
+    private int requirement;
+    private boolean equipped;
+
+    public BasicFood(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier, double effectDuration, int requirement, boolean equipped) {
+        super(name, description, overarchingCategory, weight, inventory, tier, effectDuration);
+        this.requirement = requirement;
+        this.equipped = equipped;
+    }
+
+    public int getRequirement() {
+        return requirement;
+    }
+
+    public void setRequirement(int requirement) {
+        this.requirement = requirement;
+    }
+
+    public boolean isEquipped() {
+        return equipped;
+    }
+
+    public void setEquipped(boolean equipped) {
+        this.equipped = equipped;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void equipUnequip() {
+        equipped = !equipped;
+        System.out.printf("%s has been %s.\n", getName(), equipped ? "equipped" : "unequipped");
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public void use() {
+        System.out.printf("%s has been used.\n", getName());
+        getInventory().removeItem(getName());
+    }
+
+    @Override
+    public String getActions() {
+        return String.format(
+                """
+                %s
+                Use
+                Discard
+                Split
+                Link to Chat""",
+                equipped ? "Unequip" : "Equip"
+        );
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "equip":
+            case "unequip":
+                equipUnequip();
+                return true;
+
+            case "use":
+                use();
+                return true;
+
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Tier %d
+                        %.1f Weight
+                        %.1fm Effect Duration
+                        Requirement: Level %d""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                getTier(),
+                getWeight(),
+                getEffectDuration(),
+                requirement
+        );
+    }
+}
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class TradeskillFood extends Food {
+    private int requirement;
+
+    public TradeskillFood(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier, double effectDuration, int requirement) {
+        super(name, description, overarchingCategory, weight, inventory, tier, effectDuration);
+        this.requirement = requirement;
+    }
+
+    public int getRequirement() {
+        return requirement;
+    }
+
+    public void setRequirement(int requirement) {
+        this.requirement = requirement;
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Tier %d
+                        %.1f Weight
+                        %.1fm Effect Duration
+                        Requirement: Level %d""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                getTier(),
+                getWeight(),
+                getEffectDuration(),
+                requirement
+        );
+    }
+}
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R
+
+class AlchemyAndArcana extends Item implements Discard {
+    private String rarity, ingredientTypes, derivedFrom;
+    private int tier;
+
+    public AlchemyAndArcana(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, String ingredientTypes, String derivedFrom, int tier) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.ingredientTypes = ingredientTypes;
+        this.derivedFrom = derivedFrom;
+        this.tier = tier;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public String getIngredientTypes() {
+        return ingredientTypes;
+    }
+
+    public String getDerivedFrom() {
+        return derivedFrom;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public void setIngredientTypes(String ingredientTypes) {
+        this.ingredientTypes = ingredientTypes;
+    }
+
+    public void setDerivedFrom(String derivedFrom) {
+        this.derivedFrom = derivedFrom;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+               Discard
+               Link to chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s\t%s
+                        %s
+                        Ingredient types: %s
+                        Derived from: %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                rarity,
+                getDescription(),
+                ingredientTypes,
+                derivedFrom,
+                tier,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Ammo extends Item implements EquipUnequip, Discard, Split {
+    private double damageModifier;
+    private int tier;
+    private boolean equipped;
+
+    public Ammo(String name, String description, String overarchingCategory, double weight, Inventory inventory, double damageModifier, int tier, boolean equipped) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.damageModifier = damageModifier;
+        this.tier = tier;
+        this.equipped = equipped;
+    }
+
+    public double getDamageModifier() {
+        return damageModifier;
+    }
+
+    public void setDamageModifier(double damageModifier) {
+        this.damageModifier = damageModifier;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public boolean isEquipped() {
+        return equipped;
+    }
+
+    public void setEquipped(boolean equipped) {
+        this.equipped = equipped;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void equipUnequip() {
+        equipped = !equipped;
+        System.out.printf("%s has been %s.\n", getName(), equipped ? "equipped" : "unequipped");
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return String.format("""
+               Discard
+               %s
+               Split
+               Link to Chat""", equipped ? "Unequip" : "Equip");
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "equip":
+            case "unequip":
+                equipUnequip();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        x %.1f Damage Modifier
+                        %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                damageModifier,
+                getDescription(),
+                tier,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+import java.util.*;
+//Authors: Lucas Ueta and John Robert R.
+
+class Apparel extends Item implements Salvage, EquipUnequip, Upgrade, Discard, Dye, LockUnlock, ChangeSkin {
+    private int gearScore, tier, durability, requirement;
+    private String rarity, numericalValues, bonuses, highlightedInformation;
+    private boolean equipped, locked;
+
+    public Apparel(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, int gearScore, int tier, int durability, int requirement, String numericalValues, String bonuses, String highlightedInformation, boolean equipped, boolean locked) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.gearScore = gearScore;
+        this.tier = tier;
+        this.durability = durability;
+        this.requirement = requirement;
+        this.numericalValues = numericalValues;
+        this.bonuses = bonuses;
+        this.highlightedInformation = highlightedInformation;
+        this.equipped = equipped;
+        this.locked = locked;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public int getGearScore() {
+        return gearScore;
+    }
+
+    public void setGearScore(int gearScore) {
+        this.gearScore = gearScore;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public int getDurability() {
+        return durability;
+    }
+
+    public void setDurability(int durability) {
+        this.durability = durability;
+    }
+
+    public int getRequirement() {
+        return requirement;
+    }
+
+    public void setRequirement(int requirement) {
+        this.requirement = requirement;
+    }
+
+    public String getNumericalValues() {
+        return numericalValues;
+    }
+
+    public void setNumericalValues(String numericalValues) {
+        this.numericalValues = numericalValues;
+    }
+
+    public String getBonuses() {
+        return bonuses;
+    }
+
+    public void setBonuses(String bonuses) {
+        this.bonuses = bonuses;
+    }
+
+    public String getHighlightedInformation() {
+        return highlightedInformation;
+    }
+
+    public void setHighlightedInformation(String highlightedInformation) {
+        this.highlightedInformation = highlightedInformation;
+    }
+
+    @Override
+    public void changeSkin() {
+        System.out.printf("%s's skin has been changed.\n", getName());
+    }
+
+    @Override
+    public void equipUnequip() {
+        equipped = !equipped;
+        System.out.printf("%s has been %s.\n", getName(), equipped ? "equipped" : "unequipped");
+    }
+
+    @Override
+    public void lockUnlock() {
+        locked = !locked;
+        System.out.printf("%s has been %s.\n", getName(), locked ? "locked" : "unlocked");
+
+    }
+
+    @Override
+    public void salvage() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been salvaged for %d coins.\n", getName(), (int) (Math.random() * 50));
+    }
+
+    @Override
+    public void upgrade() {
+        gearScore += 100;
+        System.out.printf("%s has been upgraded and its Gear Score has increased by 100.\n", getName());
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void dye() {
+        System.out.printf("%s has been dyed.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return String.format(
+               """
+               Change Skin
+               %s
+               %s
+               Salvage
+               Upgrade
+               Discard
+               Link to chat
+               Dye""",
+                equipped ? "Unequip" : "Equip",
+                locked ? "Unlock" : "Lock"
+        );
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "change":
+                changeSkin();
+                return true;
+
+            case "equip":
+            case "unequip":
+                equipUnequip();
+                return true;
+
+            case "lock":
+
+            case "unlock":
+                lockUnlock();
+                return true;
+
+            case "salvage":
+                salvage();
+                return true;
+
+            case "upgrade":
+                upgrade();
+                return true;
+
+            case "dye":
+                dye();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s\t%s
+                        %d
+                        %s
+                        %s
+                        %s
+                        %s
+                        Tier %d
+                        %.1f Weight
+                        %d Durability
+                        Requirement: Level %d""",
+                getName(),
+                getOverarchingCategory(),
+                getRarity(),
+                gearScore,
+                numericalValues,
+                bonuses,
+                getDescription(),
+                highlightedInformation,
+                tier,
+                getWeight(),
+                durability,
+                requirement
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Cooking extends Item implements EquipUnequip, Use, Discard, Split {
+    private int tier, effectDuration;
+    private String rarity, ingredientTypes, derivedFrom;
+    private boolean equipped;
+
+    public Cooking(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, int tier, int effectDuration, String ingredientTypes, String derivedFrom, boolean equipped) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.tier = tier;
+        this.effectDuration = effectDuration;
+        this.ingredientTypes = ingredientTypes;
+        this.derivedFrom = derivedFrom;
+        this.equipped = equipped;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public int getEffectDuration() {
+        return effectDuration;
+    }
+
+    public void setEffectDuration(int effectDuration) {
+        this.effectDuration = effectDuration;
+    }
+
+    public String getIngredientTypes() {
+        return ingredientTypes;
+    }
+
+    public void setIngredientTypes(String ingredientTypes) {
+        this.ingredientTypes = ingredientTypes;
+    }
+
+    public String getDerivedFrom() {
+        return derivedFrom;
+    }
+
+    public void setDerivedFrom(String derivedFrom) {
+        this.derivedFrom = derivedFrom;
+    }
+
+    public boolean isEquipped() {
+        return equipped;
+    }
+
+    public void setEquipped(boolean equipped) {
+        this.equipped = equipped;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void equipUnequip() {
+        equipped = !equipped;
+        System.out.printf("%s has been %s.\n", getName(), equipped ? "equipped" : "unequipped");
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public void use() {
+        System.out.printf("%s has been used.\n", getName());
+        getInventory().removeItem(getName());
+    }
+
+    @Override
+    public String getActions() {
+        return String.format(
+                """
+                %s
+                Use
+                Discard
+                Split
+                Link to Chat""",
+                equipped ? "Unequip" : "Equip"
+        );
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "equip":
+            case "unequip":
+                equipUnequip();
+                return true;
+
+            case "use":
+                use();
+                return true;
+
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Ingredient types: %s
+                        Derived from: %s
+                        Tier %d
+                        %.1f Weight
+                        %dm Effect Duration""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                ingredientTypes,
+                derivedFrom,
+                getTier(),
+                getWeight(),
+                getEffectDuration()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public class CraftMods extends Item implements Discard{
+    private String rarity, ingredientTypes;
+
+    public CraftMods(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, String ingredientTypes) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.ingredientTypes = ingredientTypes;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public String getIngredientTypes() {
+        return ingredientTypes;
+    }
+
+    public void setIngredientTypes(String ingredientTypes) {
+        this.ingredientTypes = ingredientTypes;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Discard
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s\t%s
+                        %s
+                        Ingredient types: %s
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                rarity,
+                getDescription(),
+                ingredientTypes,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Dyes extends Item implements Split {
+    public Dyes(String name, String description, String overarchingCategory, double weight, Inventory inventory) {
+        super(name, description, overarchingCategory, weight, inventory);
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Split
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public class Fishing extends Item implements Salvage, Discard {
+    private int tier;
+    private String rarity, ingredientTypes;
+
+    public Fishing(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, int tier, String ingredientType) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.tier = tier;
+        this.ingredientTypes = ingredientType;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public String getIngredientTypes() {
+        return ingredientTypes;
+    }
+
+    public void setIngredientTypes(String ingredientTypes) {
+        this.ingredientTypes = ingredientTypes;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void salvage() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been salvaged for %d coins.\n", getName(), (int) (Math.random() * 50));
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Salvage
+                Discard
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "salvage":
+                salvage();
+                return true;
+
+            case "discard":
+                discard();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Ingredient types: %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                ingredientTypes,
+                getTier(),
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Furniture extends Item {
+    private int tier;
+
+    public Furniture(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.tier = tier;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getDescription(),
+                tier,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Jewelcrafting extends Item implements Discard {
+    private int tier;
+    private String rarity, derivedFrom, ingredientTypes;
+
+    public Jewelcrafting(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, int tier, String derivedFrom, String ingredientTypes) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.tier = tier;
+        this.derivedFrom = derivedFrom;
+        this.ingredientTypes = ingredientTypes;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public String getDerivedFrom() {
+        return derivedFrom;
+    }
+
+    public void setDerivedFrom(String derivedFrom) {
+        this.derivedFrom = derivedFrom;
+    }
+
+    public String getIngredientTypes() {
+        return ingredientTypes;
+    }
+
+    public void setIngredientTypes(String ingredientTypes) {
+        this.ingredientTypes = ingredientTypes;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Discard
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+           case "discard":
+                discard();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s\t%s
+                        %s
+                        Ingredient types: %s
+                        Derived from: %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                rarity,
+                getDescription(),
+                ingredientTypes,
+                derivedFrom,
+                tier,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Leatherworking extends Item implements Discard, Split {
+    private int tier;
+    private String derivedFrom;
+
+    public Leatherworking(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier, String derivedFrom) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.tier = tier;
+        this.derivedFrom = derivedFrom;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public String getDerivedFrom() {
+        return derivedFrom;
+    }
+
+    public void setDerivedFrom(String derivedFrom) {
+        this.derivedFrom = derivedFrom;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Discard
+                Split
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Derived from: %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                derivedFrom,
+                tier,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class QuestItems extends Item {
+    public QuestItems(String name, String description, String overarchingCategory, double weight, Inventory inventory) {
+        super(name, description, overarchingCategory, weight, inventory);
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class RefiningReagents extends Item implements Discard, Split {
+    private int tier;
+    private String rarity, ingredientTypes, derivedFrom;
+
+    public RefiningReagents(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, int tier, String ingredientTypes, String derivedFrom) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.tier = tier;
+        this.ingredientTypes = ingredientTypes;
+        this.derivedFrom = derivedFrom;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public String getIngredientTypes() {
+        return ingredientTypes;
+    }
+
+    public void setIngredientTypes(String ingredientTypes) {
+        this.ingredientTypes = ingredientTypes;
+    }
+
+    public String getDerivedFrom() {
+        return derivedFrom;
+    }
+
+    public void setDerivedFrom(String derivedFrom) {
+        this.derivedFrom = derivedFrom;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Discard
+                Split
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s\t%s
+                        %s
+                        Ingredient types: %s
+                        Derived from: %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                rarity,
+                getDescription(),
+                ingredientTypes,
+                derivedFrom,
+                tier,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class RepairKits extends Item implements Split {
+    private int tier;
+
+    public RepairKits(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.tier = tier;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Split
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "open":
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                getTier(),
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Resources extends Item implements Discard {
+    private String rarity;
+
+    public Resources(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Discard
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s\t%s
+                        %s
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                rarity,
+                getDescription(),
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+public class Rewards extends Item implements Open, Discard {
+    private int tier;
+    private String rarity, highlightedInformation;
+
+    public Rewards(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, int tier, String highlightedInformation) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.tier = tier;
+        this.highlightedInformation = highlightedInformation;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public String getHighlightedInformation() {
+        return highlightedInformation;
+    }
+
+    public void setHighlightedInformation(String highlightedInformation) {
+        this.highlightedInformation = highlightedInformation;
+    }
+
+    @Override
+    public void open() {
+        getInventory().addItem(new Apparel(
+                "Cloth Hat",
+                "Cloth armor. Excellent mobility, but affords little protection.",
+                "Light Headwear",
+                1.5,
+                getInventory(),
+                "Common",
+                250,
+                2,
+                375,
+                0,
+                "37.3 Armor Rating - Elemental\n" +
+                        "37.3 Armor Rating - Physical",
+                "50% Random Attribute if Gear Score is 170+\n" +
+                        "25% Random Perk if Gear Score is 170+",
+                "Bind On Pickup",
+                false,
+                false
+        ), "Apparel");
+        getInventory().addItem(new Apparel(
+                "Cloth",
+                "Cloth armor. Excellent mobility, but affords little protection.",
+                "Light Chestwear",
+                3.5,
+                getInventory(),
+                "Common",
+                250,
+                2,
+                375,
+                0,
+                "87.0 Armor Rating - Elemental\n" +
+                        "87.0 Armor Rating - Physical",
+                "50% Random Attribute if Gear Score is 170+\n" +
+                        "25% Random Perk if Gear Score is 170+",
+                "Bind On Equip",
+                false,
+                false
+        ), "Apparel");
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been opened.\n", getName());
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Open
+                Discard
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "open":
+                open();
+                return true;
+
+            case "discard":
+                discard();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s\t%s
+                        %s
+                        %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getRarity(),
+                getDescription(),
+                highlightedInformation,
+                tier,
+                getWeight());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Smelting extends Item implements Discard, Split {
+    private int tier;
+    private String derivedFrom;
+
+    public Smelting(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier, String derivedFrom) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.tier = tier;
+        this.derivedFrom = derivedFrom;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public String getDerivedFrom() {
+        return derivedFrom;
+    }
+
+    public void setDerivedFrom(String derivedFrom) {
+        this.derivedFrom = derivedFrom;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Discard
+                Split
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Derived from: %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                derivedFrom,
+                tier,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Stonecutting extends Item implements Split {
+    private int tier;
+    private String refinedAt;
+
+    public Stonecutting(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier, String refinedAt) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.tier = tier;
+        this.refinedAt = refinedAt;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public String getRefinedAt() {
+        return refinedAt;
+    }
+
+    public void setRefinedAt(String refinedAt) {
+        this.refinedAt = refinedAt;
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Split
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Refined at: %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                refinedAt,
+                tier,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class TurningOrbs extends Item implements Discard, Split {
+    private String rarity, highlightedInformation;
+
+    public TurningOrbs(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, String highlightedInformation) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.highlightedInformation = highlightedInformation;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public String getHighlightedInformation() {
+        return highlightedInformation;
+    }
+
+    public void setHighlightedInformation(String highlightedInformation) {
+        this.highlightedInformation = highlightedInformation;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Discard
+                Split
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s\t%s
+                        %s
+                        %s
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                rarity,
+                getDescription(),
+                highlightedInformation,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Utilities extends Item implements EquipUnequip, Use, Discard, Split {
+    private int gearScore, tier, requirement;
+    private double secondCooldown;
+    private boolean equipped;
+
+    public Utilities(String name, String description, String overarchingCategory, double weight, Inventory inventory, int gearScore, int tier, int requirement, double secondCooldown, boolean equipped) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.gearScore = gearScore;
+        this.tier = tier;
+        this.requirement = requirement;
+        this.secondCooldown = secondCooldown;
+        this.equipped = equipped;
+    }
+
+    public int getGearScore() {
+        return gearScore;
+    }
+
+    public void setGearScore(int gearScore) {
+        this.gearScore = gearScore;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public int getRequirement() {
+        return requirement;
+    }
+
+    public void setRequirement(int requirement) {
+        this.requirement = requirement;
+    }
+
+    public double getSecondCooldown() {
+        return secondCooldown;
+    }
+
+    public void setSecondCooldown(double secondCooldown) {
+        this.secondCooldown = secondCooldown;
+    }
+
+    public boolean isEquipped() {
+        return equipped;
+    }
+
+    public void setEquipped(boolean equipped) {
+        this.equipped = equipped;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void equipUnequip() {
+        equipped = !equipped;
+        System.out.printf("%s has been %s.\n", getName(), equipped ? "equipped" : "unequipped");
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public void use() {
+        System.out.printf("%s has been used.\n", getName());
+        getInventory().removeItem(getName());
+    }
+
+    @Override
+    public String getActions() {
+        return String.format(
+                """
+                %s
+                Use
+                Discard
+                Split
+                Link to Chat""",
+                equipped ? "Unequip" : "Equip"
+        );
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "equip":
+            case "unequip":
+                equipUnequip();
+                return true;
+
+            case "use":
+                use();
+                return true;
+
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %d Gear Score
+                        %s
+                        Tier %d
+                        %.1f Weight
+                        %.1f Second Cooldown
+                        Requirement: Level %d""",
+                getName(),
+                getOverarchingCategory(),
+                gearScore,
+                getDescription(),
+                tier,
+                getWeight(),
+                secondCooldown,
+                requirement
+        );
+    }
+}
+
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Weapons extends Item implements Repair, Salvage, EquipUnequip, Upgrade, ReplaceGem, LockUnlock, ChangeSkin {
+    private int gearScore, tier, durability, requirement;
+    private String rarity, gearScoreComment, numericalValues, bonuses, highlightedInformation, scalesWith;
+    private boolean equipped, locked;
+
+    public Weapons(String name, String description, String overarchingCategory, double weight, Inventory inventory, String rarity, int gearScore, int tier, int durability, int requirement, String gearScoreComment, String numericalValues, String bonuses, String highlightedInformation, String scalesWith, boolean equipped, boolean locked) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.rarity = rarity;
+        this.gearScore = gearScore;
+        this.tier = tier;
+        this.durability = durability;
+        this.requirement = requirement;
+        this.gearScoreComment = gearScoreComment;
+        this.numericalValues = numericalValues;
+        this.bonuses = bonuses;
+        this.highlightedInformation = highlightedInformation;
+        this.scalesWith = scalesWith;
+        this.equipped = equipped;
+        this.locked = locked;
+    }
+
+    public String getRarity() {
+        return rarity;
+    }
+
+    public void setRarity(String rarity) {
+        this.rarity = rarity;
+    }
+
+    public int getGearScore() {
+        return gearScore;
+    }
+
+    public void setGearScore(int gearScore) {
+        this.gearScore = gearScore;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public int getDurability() {
+        return durability;
+    }
+
+    public void setDurability(int durability) {
+        this.durability = durability;
+    }
+
+    public int getRequirement() {
+        return requirement;
+    }
+
+    public void setRequirement(int requirement) {
+        this.requirement = requirement;
+    }
+
+    public String getGearScoreComment() {
+        return gearScoreComment;
+    }
+
+    public void setGearScoreComment(String gearScoreComment) {
+        this.gearScoreComment = gearScoreComment;
+    }
+
+    public String getNumericalValues() {
+        return numericalValues;
+    }
+
+    public void setNumericalValues(String numericalValues) {
+        this.numericalValues = numericalValues;
+    }
+
+    public String getBonuses() {
+        return bonuses;
+    }
+
+    public void setBonuses(String bonuses) {
+        this.bonuses = bonuses;
+    }
+
+    public String getHighlightedInformation() {
+        return highlightedInformation;
+    }
+
+    public void setHighlightedInformation(String highlightedInformation) {
+        this.highlightedInformation = highlightedInformation;
+    }
+
+    public String getScalesWith() {
+        return scalesWith;
+    }
+
+    public void setScalesWith(String scalesWith) {
+        this.scalesWith = scalesWith;
+    }
+
+    public boolean isEquipped() {
+        return equipped;
+    }
+
+    public void setEquipped(boolean equipped) {
+        this.equipped = equipped;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    @Override
+    public void changeSkin() {
+        System.out.printf("%s's skin has been changed.\n", getName());
+    }
+
+    @Override
+    public void equipUnequip() {
+        equipped = !equipped;
+        System.out.printf("%s has been %s.\n", getName(), equipped ? "equipped" : "unequipped");
+    }
+
+    @Override
+    public void lockUnlock() {
+        locked = !locked;
+        System.out.printf("%s has been %s.\n", getName(), locked ? "locked" : "unlocked");
+
+    }
+
+    @Override
+    public void repair() {
+        durability += 100;
+        System.out.printf("%s's durability has been increased by 100.\n", getName());
+    }
+
+    @Override
+    public void replaceGem() {
+        gearScore += 100;
+        System.out.printf("%s's gem has been replaced and its Gear Score has increased by 100.\n", getName());
+    }
+
+    @Override
+    public void salvage() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been salvaged for %d coins.\n", getName(), (int) (Math.random() * 50));
+    }
+
+    @Override
+    public void upgrade() {
+        gearScore += 100;
+        System.out.printf("%s has been upgraded and its Gear Score has increased by 100.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return String.format(
+                """
+                Repair
+                Salvage
+                %s
+                Upgrade
+                Replace gem
+                Link to Chat
+                %s
+                Change skin""",
+                equipped ? "Unequip" : "Equip",
+                locked ? "Unlock" : "Lock"
+        );
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "repair":
+                repair();
+                return true;
+
+            case "salvage":
+                salvage();
+                return true;
+
+            case "equip":
+            case "unequip":
+                equipUnequip();
+                return true;
+
+            case "upgrade":
+                upgrade();
+                return true;
+
+            case "replace":
+                replaceGem();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            case "lock":
+            case "unlock":
+                lockUnlock();
+                return true;
+
+            case "change":
+                changeSkin();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s\t%s
+                        %d
+                        %s
+                        %s
+                        %s
+                        %s
+                        %s
+                        Tier %d
+                        Scales with %s
+                        %.1f Weight
+                        %d Durability
+                        Requirement: Level %d""",
+                getName(),
+                getOverarchingCategory(),
+                getRarity(),
+                gearScore,
+                gearScoreComment,
+                numericalValues,
+                bonuses,
+                getDescription(),
+                highlightedInformation,
+                tier,
+                scalesWith,
+                getWeight(),
+                durability,
+                requirement
+        );
+    }
+}
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Weaving extends Item implements Discard, Split {
+    private int tier;
+    private String ingredientTypes, refinedAt;
+
+    public Weaving(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier, String ingredientTypes, String refinedAt) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.tier = tier;
+        this.ingredientTypes = ingredientTypes;
+        this.refinedAt = refinedAt;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public String getIngredientTypes() {
+        return ingredientTypes;
+    }
+
+    public void setIngredientTypes(String ingredientTypes) {
+        this.ingredientTypes = ingredientTypes;
+    }
+
+    public String getRefinedAt() {
+        return refinedAt;
+    }
+
+    public void setRefinedAt(String refinedAt) {
+        this.refinedAt = refinedAt;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Discard
+                Split
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Ingredient types: %s
+                        Refined at: %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                ingredientTypes,
+                refinedAt,
+                tier,
+                getWeight()
+        );
+    }
+}
+
+
+
+
+
+
+
+//Authors: Lucas Ueta and John Robert R.
+
+class Woodworking extends Item implements Discard, Split {
+    private int tier;
+    private String refinedAt;
+
+    public Woodworking(String name, String description, String overarchingCategory, double weight, Inventory inventory, int tier, String refinedAt) {
+        super(name, description, overarchingCategory, weight, inventory);
+        this.tier = tier;
+        this.refinedAt = refinedAt;
+    }
+
+    public int getTier() {
+        return tier;
+    }
+
+    public void setTier(int tier) {
+        this.tier = tier;
+    }
+
+    public String getRefinedAt() {
+        return refinedAt;
+    }
+
+    public void setRefinedAt(String refinedAt) {
+        this.refinedAt = refinedAt;
+    }
+
+    @Override
+    public void discard() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been discarded.\n", getName());
+    }
+
+    @Override
+    public void split() {
+        getInventory().removeItem(getName());
+        System.out.printf("%s has been split.\n", getName());
+    }
+
+    @Override
+    public String getActions() {
+        return """
+                Discard
+                Split
+                Link to Chat""";
+    }
+
+    @Override
+    public boolean act(String command) {
+        switch (command){
+            case "discard":
+                discard();
+                return true;
+
+            case "split":
+                split();
+                return true;
+
+            case "link":
+                linkToChat();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("""
+                        %s
+                        %s
+                        %s
+                        Refined at: %s
+                        Tier %d
+                        %.1f Weight""",
+                getName(),
+                getOverarchingCategory(),
+                getDescription(),
+                refinedAt,
+                tier,
+                getWeight()
+        );
+    }
+}
